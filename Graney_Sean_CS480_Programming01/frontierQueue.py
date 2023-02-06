@@ -20,8 +20,8 @@ class FrontierQueue:
     def heapify(self, idx=0):
         temp_idx = idx
         while True:
-            l = Min_Heap._left(temp_idx)
-            r = Min_Heap._right(temp_idx)
+            l = FrontierQueue._left(temp_idx)
+            r = FrontierQueue._right(temp_idx)
             # if there is a left child and the left child is greater, set temp index to the left childs index
             if l < len(self.data) and self.key(self.data[temp_idx][1]) < self.key(self.data[l][1]):
                 temp_idx = l
@@ -49,7 +49,7 @@ class FrontierQueue:
         # adds val to the last spot in the array list
         v = len(self.data)-1
         # parent of the added val
-        p = Min_Heap._parent(v)
+        p = FrontierQueue._parent(v)
 
         # while there is more than one val in the list, and the val is not the parent node, and the parent          of val is less than val
         while v > 0 and self.key(self.data[p][1]) < self.key(self.data[v][1]):
@@ -57,7 +57,7 @@ class FrontierQueue:
              self.data[p], self.data[v] = self.data[v], self.data[p]
             #  set values to continue up the tree
              v = p
-             p = Min_Heap._parent(v)
+             p = FrontierQueue._parent(v)
 
 
     def pop(self):
