@@ -11,21 +11,37 @@ class Node:
     
     def setTotalCost(self):
         if self.parent:
-            return self.parent.getTotalCost() + self.cost
+            return self.parent.totalCost + self.cost
         else:
             return 0
     
     def getTotalCost(self):
         return self.totalCost
+
+    def updateParent(self, newParent, newCost):
+        self.parent = newParent
+        self.cost = newCost
+        self.setTotalCost()
+    
+    def getParent(self):
+        return self.parent
     
     def setChildren(self, df):
         data = df.loc[self.name][df[self.name]>0]
         childrenNames = list(data.head().index)
         for childName in childrenNames:
-            self.children[childName] = data[childName]
+            if not self.parent:
+               self.children[childName] = data[childName]
+            elif childName != self.parent.name: 
+                self.children[childName] = data[childName]
     
     def getChildren(self):
         return self.children
+    
+    def getState(self):
+        return self.state
+    
+
 
         
 
