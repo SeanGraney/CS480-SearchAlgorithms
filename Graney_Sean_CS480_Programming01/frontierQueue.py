@@ -69,8 +69,10 @@ class FrontierQueue:
         del self.data[len(self.data)-1]
         # 'trickle down' the heap
         self.heapify()
-
         return ret
+    
+    def clear(self):
+        self.data = []
 
     def __len__(self):
         return len(self.data)

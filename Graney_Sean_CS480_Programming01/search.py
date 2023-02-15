@@ -12,15 +12,16 @@ class Search:
         self.solution = [] # alive list (linked list of nodes)
         self.stateSpace = df # adjacency matrix 
         self.cost = 0
+        self.currentAlgorithm = ""
     
     def greedy(self):
         startTime = time.time()
+        self.currentAlgorithm = 'greedy'
         self.initializeRoot()
 
         while not self.solution:
-            self.expand()
+            self.expand('greedy')
         self.solution.reverse()
-        print("solution: "+str(self.solution))
 
         return ({
             'title': "Greedy Best First Search",
@@ -33,8 +34,12 @@ class Search:
 
     def aStar(self):
         startTime = time.time()
-
+        self.currentAlgorithm = 'aStar'
         self.initializeRoot()
+
+        while not self.solution:
+            self.expand('aStar')
+        self.solution.reverse()
 
         return ({
             'title': "A* Search",
@@ -47,26 +52,27 @@ class Search:
 
     def initializeRoot(self):
         self.reached[self.root] = tree.Node(self.root, self.getState(self.root), None, 0)
-        self.reached[self.root].setChildren(self.stateSpace)
+        self.reached[self.root].setChildren(self.stateSpace['drivingData'])
         children = self.reached[self.root].getChildren()
 
         for k, v in children.items():
-            self.frontier.add((k, v, self.reached[self.root]))
-
-    
-    def expand(self):
+            self.frontier.add((k, self.eval(k, v), self.reached[self.root], v))
+ 
+    def expand(self, algorithm):
         bestFirstNode = self.frontier.pop()
-        bfName, bfCost, bfParent = bestFirstNode[0], bestFirstNode[1], bestFirstNode[2]
-        print("name: "+bfName+
-              " cost: "+str(bfCost)+
-              " bfParent: "+bfParent.name)
+        bfName, bfEstimate, bfCost, bfParent = bestFirstNode[0], bestFirstNode[1], bestFirstNode[3], bestFirstNode[2]
+        # print("name: "+bfName+
+        #       " cost: "+str(bfCost)+
+        #       " bfParent: "+bfParent.name)
+
         # Node has already been reached. If it exists see if path is better
         if bfName in self.reached:
             oldNode = self.reached[bfName]
             newParent = bfParent
             # if new path is better, otherwise do nothing
-
-            if oldNode.getTotalCost() > (newParent.getTotalCost() + bfCost):
+            if self.eval(oldNode.name, oldNode.getTotalCost()) > (self.eval(newParent.name, newParent.getTotalCost())):
+                # print("old: "+str(oldNode.name)+" "+str(oldNode.cost)+"\n")
+                # print("new: "+str(newParent.name)+" "+str((newParent.cost + bfCost)))
                 oldNode.updateParent(bfParent, bfCost)
             return 0
         
@@ -77,17 +83,26 @@ class Search:
 
         # check if node is goal
         if newNode.getState() == "GOAL":
-            self.cost = newNode.getTotalCost()
+            # self.cost = newNode.getTotalCost()
             self.getSolution(newNode)
             return 1
 
         # generate the children and add to frontier
-        newNode.setChildren(self.stateSpace)
+        newNode.setChildren(self.stateSpace['drivingData'])
         children = newNode.getChildren()
 
         for k, v in children.items():
-            self.frontier.add((k, v, newNode))
-            
+            self.frontier.add((k, self.eval(k, v), newNode, v))
+
+    def eval(self, name, cost):
+        if self.currentAlgorithm == 'greedy':
+            return cost
+        elif self.currentAlgorithm == 'aStar':
+            print("hit")
+            estimateDf = self.stateSpace['estimateData']
+            estimate = estimateDf[name][self.GOAL]
+            print(str(estimate))
+            return cost + estimate            
     
     def getState(self, name):
         if name == self.root:
@@ -99,9 +114,16 @@ class Search:
 
     def getSolution(self, node):
         if node:
-            self.solution.append(node.name)
+            a = self.solution.append(node.name)
+            self.cost += node.cost
+            print("name: "+node.name+" cost: "+str(node.cost))
             self.getSolution(node.parent)
-        
+    
+    def reset(self):
+        self.frontier.clear()
+        self.reached = {} # lookup table
+        self.solution = [] # alive list (linked list of nodes)
+        self.cost = 0
         
 
 

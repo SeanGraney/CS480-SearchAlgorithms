@@ -9,15 +9,20 @@ def main():
         print('ERROR: Not enough or too many input arguments.')
         exit(1)
 
-    df = pd.read_csv('data/driving.csv', index_col=0)
+    df = {
+        'drivingData': pd.read_csv('data/driving.csv', index_col=0),
+        'estimateData': pd.read_csv('data/straightline.csv', index_col=0)
+        }
     # data = list(df.loc['IL'][df['IL']>0].head().index) # get all neighbors of illinois 
 
 
     INITIAL = args[0]
     GOAL = args[1]
     search = s.Search(INITIAL, GOAL, df)
-
-    toString(INITIAL, GOAL, search.greedy(), search.aStar())
+    greedySearch = search.greedy()
+    search.reset()
+    aStarSearch = search.aStar()
+    toString(INITIAL, GOAL, greedySearch, aStarSearch)
 
 
 def toString(INITIAL, GOAL, greedyData, aStarData):
