@@ -11,7 +11,6 @@ class Node:
     
     def setTotalCost(self):
         if self.parent:
-            print("")
             return self.parent.totalCost + self.cost
         else:
             return 0
@@ -22,7 +21,7 @@ class Node:
     def updateParent(self, newParent, newCost):
         self.parent = newParent
         self.cost = newCost
-        self.setTotalCost()
+        self.totalCost = self.setTotalCost()
     
     def getParent(self):
         return self.parent

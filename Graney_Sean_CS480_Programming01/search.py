@@ -68,17 +68,17 @@ class Search:
         # Node has already been reached. If it exists see if path is better
         if bfName in self.reached:
             oldNode = self.reached[bfName]
-            newParent = bfParent
+            newCost = self.eval(bfParent.name, bfParent.getTotalCost()+bfEstimate)
             # if new path is better, otherwise do nothing
-            if self.eval(oldNode.name, oldNode.getTotalCost()) > (self.eval(newParent.name, newParent.getTotalCost())):
+            if self.eval(oldNode.name, oldNode.getTotalCost()) > newCost:
                 # print("old: "+str(oldNode.name)+" "+str(oldNode.cost)+"\n")
                 # print("new: "+str(newParent.name)+" "+str((newParent.cost + bfCost)))
-                oldNode.updateParent(bfParent, bfCost)
+                oldNode.updateParent(bfParent, bfEstimate)
             return 0
         
         # Node had not yet been reached 
         # create node, add to reached
-        newNode = tree.Node(bfName, self.getState(bfName), bfParent, bfCost)
+        newNode = tree.Node(bfName, self.getState(bfName), bfParent, bfEstimate)
         self.reached[bfName] = newNode
 
         # check if node is goal
@@ -101,7 +101,6 @@ class Search:
             print("hit")
             estimateDf = self.stateSpace['estimateData']
             estimate = estimateDf[name][self.GOAL]
-            print(str(estimate))
             return cost + estimate            
     
     def getState(self, name):
@@ -116,7 +115,6 @@ class Search:
         if node:
             a = self.solution.append(node.name)
             self.cost += node.cost
-            print("name: "+node.name+" cost: "+str(node.cost))
             self.getSolution(node.parent)
     
     def reset(self):
