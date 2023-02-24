@@ -1,22 +1,29 @@
 import pandas as pd
 
 class Node:
-    def __init__(self, name, state, parent, cost):
+    def __init__(self, df, name, goal, parent, cost):
         self.name = name
-        self.state = state
+        self.GOAL = goal
+        self.df = df
+        self.state = name == goal
         self.parent = parent
-        self.children = {}
+        self.children = self.setChildren()
         self.cost = cost
         self.totalCost = self.setTotalCost()
+        self.estimate = self.setEstimate()
     
     def setTotalCost(self):
         if self.parent:
-            return self.parent.totalCost + self.cost
+            return self.cost + self.parent.totalCost
         else:
             return 0
     
     def getTotalCost(self):
         return self.totalCost
+    
+    def setEstimate(self):
+        estimateData = self.df['estimateData']
+        return estimateData[self.name][self.GOAL]
 
     def updateParent(self, newParent, newCost):
         self.parent = newParent
@@ -26,17 +33,19 @@ class Node:
     def getParent(self):
         return self.parent
     
-    def setChildren(self, df):
-        data = df.loc[self.name][df[self.name]>0]
-        childrenNames = list(data.head().index)
+    def setChildren(self):
+        drivingData = self.df['drivingData'].loc[self.name][self.df['drivingData'][self.name]>0]
+        estimateData = self.df['estimateData']
+        childrenNames = list(drivingData.head().index)
+        children = {}
         for childName in childrenNames:
             if not self.parent:
-               self.children[childName] = data[childName]
+               children[childName] = { 'drivingData': drivingData[childName],
+                        'estimateData': estimateData[childName][self.GOAL]}
             elif childName != self.parent.name: 
-                self.children[childName] = data[childName]
-    
-    def getChildren(self):
-        return self.children
+                children[childName] = { 'drivingData': drivingData[childName],
+                         'estimateData': estimateData[childName][self.GOAL]}
+        return children
     
     def getState(self):
         return self.state
