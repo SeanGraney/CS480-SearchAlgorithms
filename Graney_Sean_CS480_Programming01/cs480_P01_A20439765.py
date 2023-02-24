@@ -1,23 +1,23 @@
 import sys
 import pandas as pd
 import search as s
-from IPython.display import display
 
 def main():
     args = sys.argv[1:]
-    if len(args)!=2:
-        print('ERROR: Not enough or too many input arguments.')
-        exit(1)
+    INITIAL = args[0]
+    GOAL = args[1]
 
+    # convert csv to dataframe
     df = {
         'drivingData': pd.read_csv('data/driving.csv', index_col=0),
         'estimateData': pd.read_csv('data/straightline.csv', index_col=0)
         }
-    # data = list(df.loc['IL'][df['IL']>0].head().index) # get all neighbors of illinois 
 
+    if len(args)!=2:
+        print('ERROR: Not enough or too many input arguments.')
+        exit(1)
 
-    INITIAL = args[0]
-    GOAL = args[1]
+    # algorithm controller
     search = s.Search(INITIAL, GOAL, df)
     greedySearch = search.greedy()
     search.reset()
@@ -37,7 +37,7 @@ def toString(INITIAL, GOAL, greedyData, aStarData):
 def dataString(data):
     return(
         data["title"] +":\n"+
-        "Solution path: "+ " ".join(data["path"]) +"\n"+
+        "Solution path: "+ ", ".join(data["path"]) +"\n"+
         "Number of states on path: "+ str(data["numStates"]) +"\n"+
         "Number of expanded Nodes: "+ str(data["numNodes"]) +"\n"+
         "Path cost: "+ str(data["pathCost"]) +"\n"+

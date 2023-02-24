@@ -5,24 +5,32 @@ from pprint import pprint
 
 class Search:
     def __init__(self, INITIAL, GOAL, df):
-        self.root = INITIAL
+        self.ROOT = INITIAL
         self.GOAL = GOAL
 
-        self.frontier = fq.FrontierQueue(lambda x:-x)
-        self.reached = {} # lookup table
-        self.solution = [] # alive list (linked list of nodes)
         self.stateSpace = df # adjacency matrix 
-        self.cost = 0
-        self.currentAlgorithm = ""
+        self.frontier = fq.FrontierQueue(lambda x:-x)
+        self.reached = {} # lookup table {name: <nodeObj>}
+        self.solution = [] # final path (updated after goal is found)
+        self.cost = 0 # final driving cost (updated after goal is found)
+        self.currentAlgorithm = "" # used to swap between bfs and a*
     
     def greedy(self):
         startTime = time.time()
         self.currentAlgorithm = 'greedy'
-        self.initializeRoot()
 
-        while not self.solution:
-            self.search('greedy')
-        self.solution.reverse()
+        # Check if inputs exist or if the start node is the end node
+        if self.ROOT not in self.stateSpace['drivingData'] or self.GOAL not in self.stateSpace['drivingData']:
+            self.solution = ['NOT FOUND']
+            self.cost = "N/A Miles"
+        elif self.ROOT == self.GOAL:
+            self.solution = [self.ROOT]
+            self.cost = 0
+        else:
+            self.initializeRoot()
+            while not self.solution:
+                self.search('greedy')
+            self.solution.reverse() # soluion list is built backwards, so for correct represection
 
         return ({
             'title': "Greedy Best First Search",
@@ -36,11 +44,18 @@ class Search:
     def aStar(self):
         startTime = time.time()
         self.currentAlgorithm = 'aStar'
-        self.initializeRoot()
+        if self.ROOT not in self.stateSpace['drivingData'] or self.GOAL not in self.stateSpace['drivingData']:
+            self.solution = ['NOT FOUND']
+            self.cost = "N/A Miles"
+        elif self.ROOT == self.GOAL:
+            self.solution = [self.ROOT]
+            self.cost = 0
+        else:
+            self.initializeRoot()
+            while not self.solution:
+                self.search('aStar')
 
-        while not self.solution:
-            self.search('aStar')
-        self.solution.reverse()
+            self.solution.reverse() # soluion list is built backwards, so for correct represection
 
         return ({
             'title': "A* Search",
@@ -51,13 +66,21 @@ class Search:
             'time': (time.time()-startTime)
         })
 
+    # Initialize root node and children
     def initializeRoot(self):
-        self.reached[self.root] = tree.Node(self.stateSpace, self.root, self.GOAL, None, 0)
-        children = self.reached[self.root].children
+        self.reached[self.ROOT] = tree.Node(self.stateSpace, self.ROOT, self.GOAL, None, 0)
+        children = self.reached[self.ROOT].children
 
+        # children takes the form of {'IL': 
+        #                               {
+        #                                   'drivingData': XXX,
+        #                                   'estimatedData': XXX
+        #                               },
+        #                            'IA': ...
+        #                            }
         for k, v in children.items():
-            self.reached[k] = tree.Node(self.stateSpace, k, self.GOAL, self.reached[self.root], v['drivingData'])
-            self.frontier.add((k, self.eval(v, 0), self.reached[self.root], v))
+            self.reached[k] = tree.Node(self.stateSpace, k, self.GOAL, self.reached[self.ROOT], v['drivingData'])
+            self.frontier.add((k, self.eval(v, 0)))
 
     def search(self, algorithm):
 
@@ -67,18 +90,19 @@ class Search:
         # print('\n')
         # ------------------------------ #
 
-        bestFirstNode = self.frontier.pop()
-        bfName, bfEval, bfParent, bfData = bestFirstNode[0], bestFirstNode[1], bestFirstNode[2], bestFirstNode[3]
+        bestFirstNode = self.reached[self.frontier.pop()[0]]
 
-        if self.reached[bfName].state:
-            self.getSolution(self.reached[bfName])
+        # if bestFirstNode is the GOAL get solution
+        if bestFirstNode.state:
+            self.getSolution(bestFirstNode)
             return 1
 
-        for child in self.expand(self.reached[bfName]):
+        # loop through children nodes of the bestFirstNode add new Nodes accordingly
+        for child in self.expand(bestFirstNode):
             if child.name not in self.reached or child.totalCost < self.reached[child.name].totalCost:
-                childData = self.reached[bfName].children[child.name]
+                childData = bestFirstNode.children[child.name]
                 self.reached[child.name] = child
-                self.frontier.add((child.name, self.eval(childData, self.reached[bfName].totalCost), self.reached[bfName], childData))
+                self.frontier.add((child.name, self.eval(childData, bestFirstNode.totalCost)))
 
     def expand(self, node):
         children = []
@@ -86,18 +110,23 @@ class Search:
             children.append(tree.Node(self.stateSpace, k, self.GOAL, node, v['drivingData']))
         return children
 
+    # returns different values depending on which algorithm called eval() 
     def eval(self, data, parentCost):
         if self.currentAlgorithm == 'greedy':
             return data['estimateData']
         elif self.currentAlgorithm == 'aStar':
+            # adds both estimateData and drivingData
             return sum(data.values())+parentCost            
 
+    # recursively gets path and total cost
     def getSolution(self, node):
         if node:
+            print(str(node.name))
             self.solution.append(node.name)
             self.cost += node.cost
             self.getSolution(node.parent)
     
+    # refreshes data structures between algorithms
     def reset(self):
         self.frontier.clear()
         self.reached = {} # lookup table

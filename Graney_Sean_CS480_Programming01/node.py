@@ -1,17 +1,18 @@
 import pandas as pd
 
 class Node:
-    def __init__(self, df, name, goal, parent, cost):
+    def __init__(self,stateSpace, name, goal, parent, cost):
         self.name = name
         self.GOAL = goal
-        self.df = df
+        self.stateSpace = stateSpace
         self.state = name == goal
         self.parent = parent
         self.children = self.setChildren()
         self.cost = cost
         self.totalCost = self.setTotalCost()
         self.estimate = self.setEstimate()
-    
+
+    # recursively finds total cost of path 
     def setTotalCost(self):
         if self.parent:
             return self.cost + self.parent.totalCost
@@ -19,36 +20,22 @@ class Node:
             return 0
     
     def setEstimate(self):
-        estimateData = self.df['estimateData']
+        estimateData = self.stateSpace['estimateData']
         return estimateData[self.name][self.GOAL]
-
-    def updateParent(self, newParent, newCost):
-        self.parent = newParent
-        self.cost = newCost
-        self.totalCost = self.setTotalCost()
     
-    def getParent(self):
-        return self.parent
-    
+    # Parses state space for valid children of node
     def setChildren(self):
-        drivingData = self.df['drivingData'].loc[self.name][self.df['drivingData'][self.name]>0]
-        estimateData = self.df['estimateData']
+        drivingData = self.stateSpace['drivingData'].loc[self.name][self.stateSpace['drivingData'][self.name]>0]
+        estimateData = self.stateSpace['estimateData']
         childrenNames = list(drivingData.index)
-        if self.name == 'PA':
-            print(childrenNames)
-            print(drivingData)
         children = {}
+
         for childName in childrenNames:
-            if not self.parent:
+            if not self.parent or childName != self.parent.name:
                children[childName] = { 'drivingData': drivingData[childName],
                         'estimateData': estimateData[childName][self.GOAL]}
-            elif childName != self.parent.name: 
-                children[childName] = { 'drivingData': drivingData[childName],
-                         'estimateData': estimateData[childName][self.GOAL]}
         return children
     
-    def getState(self):
-        return self.state
     
 
 

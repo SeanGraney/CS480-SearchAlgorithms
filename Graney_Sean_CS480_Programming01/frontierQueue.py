@@ -44,7 +44,6 @@ class FrontierQueue:
         return self.data[0]
 
     def add(self, lst):
-        
         self.data.append(lst)
         # adds val to the last spot in the array list
         v = len(self.data)-1
