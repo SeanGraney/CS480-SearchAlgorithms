@@ -21,18 +21,17 @@ def main():
     search = s.Search(INITIAL, GOAL, df)
     greedySearch = search.greedy()
     search.reset()
-    # aStarSearch = search.aStar()
-    # toString(INITIAL, GOAL, greedySearch, aStarSearch)
+    aStarSearch = search.aStar()
+    toString(INITIAL, GOAL, greedySearch, aStarSearch)
 
-    toString(INITIAL, GOAL, greedySearch, 1)
 
 def toString(INITIAL, GOAL, greedyData, aStarData):
     print(
         "Graney, Sean, A20439765 solution:\n"+
         "Initial state: "+ INITIAL +"\n"+
         "Goal sate: "+ GOAL +"\n\n"+
-        dataString(greedyData) +"\n"
-        # dataString(aStarData)
+        dataString(greedyData) +"\n"+
+        dataString(aStarData)
     )
 
 def dataString(data):

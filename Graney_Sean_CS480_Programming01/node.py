@@ -18,9 +18,6 @@ class Node:
         else:
             return 0
     
-    def getTotalCost(self):
-        return self.totalCost
-    
     def setEstimate(self):
         estimateData = self.df['estimateData']
         return estimateData[self.name][self.GOAL]
@@ -36,7 +33,10 @@ class Node:
     def setChildren(self):
         drivingData = self.df['drivingData'].loc[self.name][self.df['drivingData'][self.name]>0]
         estimateData = self.df['estimateData']
-        childrenNames = list(drivingData.head().index)
+        childrenNames = list(drivingData.index)
+        if self.name == 'PA':
+            print(childrenNames)
+            print(drivingData)
         children = {}
         for childName in childrenNames:
             if not self.parent:
