@@ -14,28 +14,25 @@ class Search:
         self.solution = [] # final path (updated after goal is found)
         self.cost = 0 # final driving cost (updated after goal is found)
         self.currentAlgorithm = "" # used to swap between bfs and a*
+
     
     def greedy(self):
         startTime = time.time()
         self.currentAlgorithm = 'greedy'
 
-        # Check if inputs exist or if the start node is the end node
-        if self.ROOT not in self.stateSpace['drivingData'] or self.GOAL not in self.stateSpace['drivingData']:
-            self.solution = ['NOT FOUND']
-            self.cost = "N/A Miles"
-        elif self.ROOT == self.GOAL:
-            self.solution = [self.ROOT]
-            self.cost = 0
-        else:
+        # Check inputs exist and the start node is not the end node, otherwise print eror
+        if self.validInputs():
             self.initializeRoot()
+            
             while not self.solution:
                 self.search('greedy')
+        
             self.solution.reverse() # soluion list is built backwards, so for correct represection
 
         return ({
             'title': "Greedy Best First Search",
             'path': self.solution,
-            'numStates': len(self.solution),
+            'numStates': self.getPathLength(),
             'numNodes': len(self.reached),
             'pathCost': self.cost,
             'time': (time.time()-startTime)
@@ -44,27 +41,36 @@ class Search:
     def aStar(self):
         startTime = time.time()
         self.currentAlgorithm = 'aStar'
-        if self.ROOT not in self.stateSpace['drivingData'] or self.GOAL not in self.stateSpace['drivingData']:
-            self.solution = ['NOT FOUND']
-            self.cost = "N/A Miles"
-        elif self.ROOT == self.GOAL:
-            self.solution = [self.ROOT]
-            self.cost = 0
-        else:
-            self.initializeRoot()
-            while not self.solution:
-                self.search('aStar')
 
+        # Check if inputs exist and the start node is not the end node, otherwise print eror
+        if self.validInputs():
+            self.initializeRoot()
+
+            while not self.solution:
+                self.search(self.currentAlgorithm)
             self.solution.reverse() # soluion list is built backwards, so for correct represection
 
         return ({
             'title': "A* Search",
             'path': self.solution,
-            'numStates': len(self.solution),
+            'numStates': self.getPathLength(),
             'numNodes': len(self.reached),
             'pathCost': self.cost,
             'time': (time.time()-startTime)
         })
+    
+    # Checks if inputs are valid
+    def validInputs(self):
+        # Check if inputs exist or if the start node is the end node, otherwise search normally
+        if self.ROOT not in self.stateSpace['drivingData'] or self.GOAL not in self.stateSpace['drivingData']:
+            self.solution = ['NOT FOUND']
+            self.cost = "N/A Miles"
+            return False
+        elif self.ROOT == self.GOAL:
+            self.solution = [self.ROOT]
+            self.cost = 0
+            return False
+        return True
 
     # Initialize root node and children
     def initializeRoot(self):
@@ -78,6 +84,7 @@ class Search:
         #                               },
         #                            'IA': ...
         #                            }
+
         for k, v in children.items():
             self.reached[k] = tree.Node(self.stateSpace, k, self.GOAL, self.reached[self.ROOT], v['drivingData'])
             self.frontier.add((k, self.eval(v, 0)))
@@ -126,19 +133,16 @@ class Search:
             self.cost += node.cost
             self.getSolution(node.parent)
     
+    # When path is not found, we need to manually change the path length
+    def getPathLength(self):
+        if self.solution == ['NOT FOUND']:
+            return 0
+        else:
+            return len(self.solution)
+    
     # refreshes data structures between algorithms
     def reset(self):
         self.frontier.clear()
         self.reached = {} # lookup table
         self.solution = [] # alive list (linked list of nodes)
         self.cost = 0
-        
-
-
-
-
-
-
-
-
-    
