@@ -128,7 +128,6 @@ class Search:
     # recursively gets path and total cost
     def getSolution(self, node):
         if node:
-            print(str(node.name))
             self.solution.append(node.name)
             self.cost += node.cost
             self.getSolution(node.parent)
